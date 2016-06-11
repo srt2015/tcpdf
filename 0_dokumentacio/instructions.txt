@@ -1,0 +1,20 @@
+Tibor Roskó
+University of Debrecen, 2016
+
+Most different change to previous versions, namespaces.
+The whole library based on namespace as it can be used in component based environment.
+
+
+About documents
+	name_changedto.ods: defines how changed prevoius versions's names
+	ns-dependency_diagram.svg: shows dependencies between separated components
+	original_buildtree.txt: previous version build, dependency summary
+
+
+Example implementation in the example_call.php file:
+	copy tcpdf directory to your system
+	add an autoloader to autoload called classes
+	include autoconfig and custom config files
+
+
+Be sure to set coding of your files to UTF-8 (without BOM)

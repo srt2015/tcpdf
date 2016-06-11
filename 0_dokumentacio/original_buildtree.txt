@@ -1,0 +1,69 @@
+tcpdf
+	config
+		tcpdf_config.php
+			//konstansok definiálása
+	fonts
+		
+	include
+		barcodes
+			datamatrix.php
+			pdf417.php
+				függések: (bcmath extension)
+			qrcode.php
+		sRGB.icc
+		tcpdf_colors.php
+			//Array of WEB safe colors, színek kódjait tudja visszaadni
+		tcpdf_filters.php
+			//pdf filtereket dekódol
+		tcpdf_font_data.php
+		tcpdf_fonts.php
+			//font metódusok
+			include/tcpdf_static.php
+			tcpdf_font_data.php
+		tcpdf_images.php
+			//kép metódusok
+			include/tcpdf_static.php
+		tcpdf_static.php
+			//statikus metódusok
+			tcpdf_colors.php
+			függések: (openssl extension)
+	tools
+		//parancssoros betûkészlet generáló
+		.htaccess
+		convert_fonts_examples.txt
+		tcpdf_addfont.php
+			tcpdf.php
+			tcpdf_fonts.php
+	tcpdf.php
+		//pdf-et generál
+		tcpdf_autoconfig.php
+		include/tcpdf_font_data.php
+		include/tcpdf_fonts.php
+		include/tcpdf_colors.php
+		include/tcpdf_images.php
+		include/tcpdf_static.php
+		include/sRGB.icc
+		tcpdf_barcodes_1d.php: new TCPDFBarcode, 
+		tcpdf_barcodes_2d.php: new TCPDF2DBarcode, 
+		függések: new Imagick, 
+	tcpdf_autoconfig.php
+		//ha nincs config/konfigurációs fájl, akkor definiál automatikusan konstansokat
+	tcpdf_barcodes_1d.php
+		//1 dimenziós vonalkód készítés
+		függések: new imagickpixel, new Imagick, new imagickdraw, (imagic, GD, bcmath extension)
+	tcpdf_barcodes_2d.php
+		//2 dimenziós vonalkód készítés
+		barcodes/datamatrix.php: new Datamatrix, 
+		barcodes/pdf417.php: new PDF417, 
+		barcodes/qrcode.php: new QRcode, 
+		függések: new imagickpixel, new Imagick, new imagickdraw, (imagic, GD extension)
+	tcpdf_import.php
+		//betölt létezõ pdf-eket, fejlesztés alatt
+		extends TCPDF
+		tcpdf.php
+		tcpdf_parser.php: new TCPDF_PARSER, 
+	tcpdf_parser.php
+		//felparsol egy létezõ pdf-et, kinyeri belõle az adatokat
+		include/tcpdf_filters.php
+		
+	composer.json
