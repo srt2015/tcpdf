@@ -22,8 +22,8 @@ final class XMP
 	
 	public function __construct(Parser $obj)
 	{
-		$this->xref=$obj->getParsedData()[0];
-		$this->objects=$obj->getParsedData()[1];
+		if(!empty($obj->getParsedData()[0])){$this->xref=$obj->getParsedData()[0];}else{$this->xref=null;}
+		if(!empty($obj->getParsedData()[1])){$this->objects=$obj->getParsedData()[1];}else{$this->objects=null;}
 	}
 	
 	public function serializeObjBody($obj_body)
@@ -43,6 +43,9 @@ final class XMP
 	}
 	public function out($t, &$b)
 	{
+		if(empty($t[0]) and $t[0]!==0){throw new \Exception("MISSING_ARGUMENT");}
+		if(empty($t[1]) and $t[1]!==0){throw new \Exception("MISSING_ARGUMENT");}
+		
 		if($t[0]!="numeric" and $t[0]!="objref"){$b[]=$t[0];}
 		if($t[0]=="numeric"){$b[]=' ';}
 		
@@ -62,15 +65,15 @@ final class XMP
 	
 	public function getXrefArgument($argument)
 	{
-		if(!array_key_exists('trailer', $this->xref) OR !array_key_exists($argument, $this->xref['trailer']) OR empty($this->xref['trailer'][$argument])){throw new \Exception('MISSING_ARGUMENT');}
+		if(!array_key_exists("trailer", $this->xref) OR !array_key_exists($argument, $this->xref["trailer"]) OR empty($this->xref["trailer"][$argument])){throw new \Exception("MISSING_ARGUMENT");}
 		
 		
-		return $this->xref['trailer'][$argument];
+		return $this->xref["trailer"][$argument];
 	}
 	
 	public function getRootId()
 	{
-		return $this->getXrefArgument('root');
+		return $this->getXrefArgument("root");
 	}
 	
 	public function getMetadataObjId($serialized_object_body)
@@ -90,23 +93,23 @@ final class XMP
 	
 	public function getLastSize()
 	{
-		return $this->getXrefArgument('size');
+		return $this->getXrefArgument("size");
 	}
 	
 	public function getLastStartxref()
 	{
-		if(!array_key_exists('startxref', $this->xref) OR empty($this->xref['startxref'])){throw new \Exception('MISSING_LAST_STARTXREF');}
+		if(!array_key_exists("startxref", $this->xref) OR empty($this->xref["startxref"])){throw new \Exception("MISSING_LAST_STARTXREF");}
 		
 		
-		return $this->xref['startxref'];
+		return $this->xref["startxref"];
 	}
 	
 	public function getLength()
 	{
-		if(!array_key_exists('length', $this->xref) OR empty($this->xref['length'])){throw new \Exception('MISSING_PDF_LENGTH');}
+		if(!array_key_exists("length", $this->xref) OR empty($this->xref["length"])){throw new \Exception("MISSING_PDF_LENGTH");}
 		
 		
-		return $this->xref['length'];
+		return $this->xref["length"];
 	}
 	
 	public function getActualLength()
@@ -157,11 +160,11 @@ final class XMP
 		}
 		$obj.="trailer\n";
 		$obj.="<<";
-		$obj.="/Info ".explode('_', $this->getXrefArgument('info'))[0]." ".explode('_', $this->getXrefArgument('info'))[1]." R";
+		$obj.="/Info ".explode('_', $this->getXrefArgument("info"))[0]." ".explode('_', $this->getXrefArgument("info"))[1]." R";
 		$obj.="/Size ".$this->getNewObjId();
 		$obj.="/Root ".explode('_', $this->getRootId())[0]." ".explode('_', $this->getRootId())[1]." R";
 		$obj.="/Prev ".$this->getLastStartxref();
-		$obj.="/ID [<".$this->getXrefArgument('id')[0]."><".$this->getXrefArgument('id')[1].">]";
+		try{$obj.="/ID [<".$this->getXrefArgument("id")[0]."><".$this->getXrefArgument("id")[1].">]";}catch(\Exception $e){}//optional /Catalog parameter
 		$obj.=">>\n";
 		$obj.="startxref\n";
 		$obj.=$this->getActualLength()."\n";
@@ -172,9 +175,13 @@ final class XMP
 	
 	public function xmpSignatureValidate(\DOMDocument $dom)
 	{
-		$dom2=new \DOMDocument();
+		if($dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->length!=1){throw new \Exception("ERROR_MORE_SIGNATURES_TAG");}
 		$node=$dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->item(0);
+		if(empty($node)){throw new \Exception("MISSING_SIGNATURES_TAG");}
+		
+		$dom2=new \DOMDocument();
 		$node2=$dom2->importNode($node,true);
+		if(empty($node2)){throw new \Exception("MISSING_SIGNATURES_TAG");}
 		$dom2->appendChild($node2);
 		
 		
@@ -187,6 +194,7 @@ final class XMP
 		if(empty($sign_array)){throw new \Exception("SIGNVALUE_NOT_EXSITS");}
 		
 		//Get catalog, check is existed
+		if(empty($this->objects[$this->getRootId()])){throw new \Exception("ROOT_NOT_AVAILABLE");}
 		$catalog=$this->serializeObjBody($this->objects[$this->getRootId()]);
 		if(empty($catalog)){throw new \Exception("ROOT_NOT_AVAILABLE");}
 		
@@ -194,6 +202,7 @@ final class XMP
 		if(!empty($this->getMetadataObjId($catalog)))
 		{
 			//copy Metadata object
+			if(empty($this->objects[$this->getMetadataObjId($catalog)])){throw new \Exception("METADATA_NOT_AVAILABLE");}
 			$serialized_metadata=$this->serializeObjBody($this->objects[$this->getMetadataObjId($catalog)]);
 			//does metadata object exist?
 			if(empty($serialized_metadata)){throw new \Exception("METADATA_NOT_AVAILABLE");}
@@ -213,12 +222,14 @@ final class XMP
 			
 			//Get existed RDF
 			$dom=new \DOMDocument();
-			$dom->loadXML($serialized_metadata[1][1]);
+			if(empty($serialized_metadata[1][1])){throw new \Exception("MISSING_ARGUMENT");}
+			if(!$dom->loadXML($serialized_metadata[1][1])){throw new \Exception("ERROR_FAIL_XML_LOAD");}
 			//Does RDF exist?
-			if(!count($dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF"))==1){throw new \Exception("RDF_ROOT_UNDEFINED");}
+			if($dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF")->length!=1){throw new \Exception("RDF_ROOT_UNDEFINED");}
 			
 			//drop signatures if exists
-			if(count($dom->getElementsByTagNameNS(Statics::signNS(), "signatures"))==1)
+			if($dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->length>1){throw new \Exception("ERROR_MORE_SIGNATURES_TAG");}
+			if($dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->length==1)
 			{
 				$rdf=$dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF")->item(0);
 				$sign=$dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->item(0);
@@ -228,19 +239,19 @@ final class XMP
 			//Create XSD nodes by sign_array
 			$dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF")->item(0)->appendChild($dom->createElementNS(Statics::signNS(), "s:signatures"));
 			$i=0;
-			foreach($sign_array as $k=>$v)
+			foreach($sign_array as $s)
 			{
 				$dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->item(0)->appendChild($dom->createElementNS(Statics::signNS(), "s:signature"));
 				
-				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:email", $k));
-				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:level", $v));
+				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:email", $s["email"]));
+				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:level", $s["level"]));
 				$i++;
 			}
 			
-			$dom_data=$dom->saveXML();
+			if(!$dom_data=$dom->saveXML()){throw new \Exception("ERROR_FAIL_XML_SAVE");}
 			
 			$dom2=new \DOMDocument();
-			$dom2->loadXML($dom_data);
+			if(!$dom2->loadXML($dom_data)){throw new \Exception("ERROR_FAIL_XML_LOAD");}
 			if(!$this->xmpSignatureValidate($dom2)){throw new \Exception("INVALID_SIGNATURE");}
 			
 			$obj.=$dom_data;
@@ -286,22 +297,24 @@ final class XMP
 		$signatures=array();
 		
 		//Get catalog, check is existed
+		if(empty($this->objects[$this->getRootId()])){throw new \Exception("ROOT_NOT_AVAILABLE");}
 		$catalog=$this->serializeObjBody($this->objects[$this->getRootId()]);
 		if(empty($catalog)){throw new \Exception("ROOT_NOT_AVAILABLE");}
 		
 		//Root : Metadata objref exists
 		if(empty($this->getMetadataObjId($catalog))){throw new \Exception("METADATA_NOT_EXISTS");}
 		//Get Metadata object, check is existed
+		if(empty($this->objects[$this->getMetadataObjId($catalog)])){throw new \Exception("METADATA_NOT_AVAILABLE");}
 		$serialized_metadata=$this->serializeObjBody($this->objects[$this->getMetadataObjId($catalog)]);
 		if(empty($serialized_metadata)){throw new \Exception("METADATA_NOT_AVAILABLE");}
 			
 		//Get existed RDF
 		$dom=new \DOMDocument();
-		$dom->loadXML($serialized_metadata[1][1]);
+		if(!$dom->loadXML($serialized_metadata[1][1])){throw new \Exception("ERROR_FAIL_XML_LOAD");}
 		//Does RDF exist?
-		if(!count($dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF"))==1){throw new \Exception("RDF_ROOT_UNDEFINED");}
+		if($dom->getElementsByTagNameNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "RDF")->length!=1){throw new \Exception("RDF_ROOT_UNDEFINED");}
 		//Does signatures exist?
-		if(!count($dom->getElementsByTagNameNS(Statics::signNS(), "signatures"))==1){throw new \Exception("SIGNATURE_NOT_EXISTS");}
+		if($dom->getElementsByTagNameNS(Statics::signNS(), "signatures")->length!=1){throw new \Exception("SIGNATURE_NOT_EXISTS");}
 		//Is signatures valid?
 		if(!$this->xmpSignatureValidate($dom)){throw new \Exception("INVALID_SIGNATURE");}
 		
@@ -310,7 +323,7 @@ final class XMP
 		//Get values of signature:email, signature:level nodes
 		foreach($signature_array as $s_arr)
 		{
-			$signatures[$s_arr->getElementsByTagName("email")->item(0)->nodeValue]=$s_arr->getElementsByTagName("level")->item(0)->nodeValue;
+			$signatures[]=array("email"=>$s_arr->getElementsByTagName("email")->item(0)->nodeValue, "level"=>$s_arr->getElementsByTagName("level")->item(0)->nodeValue);
 		}
 		
 		
