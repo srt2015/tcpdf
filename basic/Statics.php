@@ -128,9 +128,9 @@ class Statics {
 		if(empty($sign_array) OR !is_array($sign_array)){throw new \Exception("SIGNVALUE_NOT_EXSITS");}
 		
 		$arr="<s:signatures xmlns:s=\"".self::signNS()."\">\n";
-		foreach($sign_array as $k=>$v)
+		foreach($sign_array as $s)
 		{
-			$arr.="\t<s:signature>\n\t\t<s:email>".$k."</s:email>\n\t\t<s:level>".$v."</s:level>\n\t</s:signature>\n";
+			$arr.="\t<s:signature>\n\t\t<s:email>".$s["email"]."</s:email>\n\t\t<s:level>".$s["level"]."</s:level>\n\t</s:signature>\n";
 		}
 		$arr.="</s:signatures>\n";
 		
