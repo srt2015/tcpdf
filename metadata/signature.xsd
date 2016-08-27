@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:sign="http://w2.inf.unideb.hu/~maszatweb/signature/" elementFormDefault="qualified" targetNamespace="http://w2.inf.unideb.hu/~maszatweb/signature/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:annotation>
+		<xs:documentation>Electra sign signature schema - 2016</xs:documentation>
+	</xs:annotation>
+	
+	<xs:simpleType name="email_type">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[^@]+@[^\.]+\..+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:element name="signatures">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="signature" minOccurs='1' maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="email" type="sign:email_type" minOccurs='1' maxOccurs="1"></xs:element>
+							<xs:element name="level" type="xs:positiveInteger" minOccurs='1' maxOccurs="1" default="1"></xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+
+
+<!--xml, rdf documetn format
+<s:signatures xmlns:s="http://w2.inf.unideb.hu/~maszatweb/signature/">
+	<s:signature>
+		<s:email>dfdf@fff.ff</s:email>
+		<s:level>2</s:level>
+	</s:signature>
+</s:signatures>-->
