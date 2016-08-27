@@ -43,8 +43,8 @@ final class XMP
 	}
 	public function out($t, &$b)
 	{
-		if(empty($t[0]) and $t[0]!==0){throw new \Exception("MISSING_ARGUMENT");}
-		if(empty($t[1]) and $t[1]!==0){throw new \Exception("MISSING_ARGUMENT");}
+		if(!array_key_exists(0, $t)){throw new \Exception("MISSING_ARGUMENT");}
+		if(!array_key_exists(1, $t)){throw new \Exception("MISSING_ARGUMENT");}
 		
 		if($t[0]!="numeric" and $t[0]!="objref"){$b[]=$t[0];}
 		if($t[0]=="numeric"){$b[]=' ';}
@@ -323,7 +323,7 @@ final class XMP
 		//Get values of signature:email, signature:level nodes
 		foreach($signature_array as $s_arr)
 		{
-			$signatures[]=array("email"=>$s_arr->getElementsByTagName("email")->item(0)->nodeValue, "level"=>$s_arr->getElementsByTagName("level")->item(0)->nodeValue);
+			$signatures[]=array("email"=>$s_arr->getElementsByTagName("email")->item(0)->nodeValue, "level"=>(int)$s_arr->getElementsByTagName("level")->item(0)->nodeValue);
 		}
 		
 		
