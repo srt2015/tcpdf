@@ -4,7 +4,7 @@ use \tcpdf\parser\Parser;
 use \tcpdf\basic\Statics;
 
 //============================================================+
-// Last Update : 2016-05-01
+// Last Update : 2016-11-30
 // Author      : Tibor Roskó - University of Debrecen
 // -------------------------------------------------------------------
 //
@@ -245,6 +245,21 @@ final class XMP
 				
 				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:email", $s["email"]));
 				$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:level", $s["level"]));
+				
+				if(!empty($s["vices"]))
+				{
+					$dom->getElementsByTagNameNS(Statics::signNS(), "signature")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:vices"));
+					
+					$j=0;
+					foreach($s["vices"] as $v)
+					{
+						$dom->getElementsByTagNameNS(Statics::signNS(), "vices")->item($i)->appendChild($dom->createElementNS(Statics::signNS(), "s:vice"));
+						
+						$dom->getElementsByTagNameNS(Statics::signNS(), "vice")->item($j)->appendChild($dom->createElementNS(Statics::signNS(), "s:email", $v["email"]));
+						
+						$j++;
+					}
+				}
 				$i++;
 			}
 			
@@ -320,10 +335,20 @@ final class XMP
 		
 		//Get signatures:signature nodes
 		$signature_array=$dom->getElementsByTagNameNS(Statics::signNS(), "signature");
-		//Get values of signature:email, signature:level nodes
+		//Get values of signature:email, signature:level, signature:vices nodes
 		foreach($signature_array as $s_arr)
 		{
-			$signatures[]=array("email"=>$s_arr->getElementsByTagName("email")->item(0)->nodeValue, "level"=>(int)$s_arr->getElementsByTagName("level")->item(0)->nodeValue);
+			$vices=array();
+			if(!empty($s_arr->getElementsByTagName("vices")->length==1))
+			{
+				$vices_arr=$s_arr->getElementsByTagName("vice");
+				foreach($vices_arr as $v)
+				{
+					$vices[]=array("email"=>$v->getElementsByTagName("email")->item(0)->nodeValue);
+				}
+			}
+			
+			$signatures[]=array("email"=>$s_arr->getElementsByTagName("email")->item(0)->nodeValue, "level"=>(int)$s_arr->getElementsByTagName("level")->item(0)->nodeValue, "vices"=>$vices);
 		}
 		
 		

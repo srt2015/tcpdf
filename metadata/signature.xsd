@@ -17,7 +17,20 @@
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element name="email" type="sign:email_type" minOccurs='1' maxOccurs="1"></xs:element>
-							<xs:element name="level" type="xs:positiveInteger" minOccurs='1' maxOccurs="1" default="1"></xs:element>
+							<xs:element name="level" type="xs:positiveInteger" minOccurs='1' maxOccurs="1"></xs:element>
+							<xs:element name="vices" minOccurs='0' maxOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="vice" minOccurs='1' maxOccurs="5">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="email" type="sign:email_type" minOccurs='1' maxOccurs="1"></xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
@@ -30,7 +43,12 @@
 <!--xml, rdf documetn format
 <s:signatures xmlns:s="http://w2.inf.unideb.hu/~maszatweb/signature/">
 	<s:signature>
-		<s:email>dfdf@fff.ff</s:email>
-		<s:level>2</s:level>
+		<s:email>test1@unideb.hu</s:email>
+		<s:level>1</s:level>
+		<s:vices>
+			<s:vice>
+				<s:email>test2@unideb.hu</s:email>
+			</s:vice>
+		</s:vices>
 	</s:signature>
 </s:signatures>-->

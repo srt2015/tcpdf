@@ -3,7 +3,7 @@ namespace tcpdf\basic;
 use \tcpdf\webbasedcolor\Colors;
 
 //============================================================+
-// Last Update : 2016-03-27
+// Last Update : 2016-11-30
 // Author      : Tibor Roskó - University of Debrecen
 // -------------------------------------------------------------------
 // File name   : Statics.php
@@ -121,7 +121,7 @@ class Statics {
 	}
 	
 	/*Returns an RDF based Electra signature blokk for custom XMP metadata
-		@params key=>value array (email=>level pairs)
+		@params key=>value array : details in the specification
 		@return string: RDF compatible struct, contains the given data*/
 	public static function getXMPSignature($sign_array)
 	{
@@ -131,6 +131,18 @@ class Statics {
 		foreach($sign_array as $s)
 		{
 			$arr.="\t<s:signature>\n\t\t<s:email>".$s["email"]."</s:email>\n\t\t<s:level>".$s["level"]."</s:level>\n\t</s:signature>\n";
+			
+			if(!empty($s["vices"]))
+			{
+				$arr.="\t\t<s:vices>\n";
+				
+				foreach($s["vices"] as $v)
+				{
+					$arr.="\t\t\t<s:vice>\n\t\t\t\t<s:email>".$v["email"]."</s:email>\n\t\t\t</s:vice>\n";
+				}
+				
+				$arr.="\t\t</s:vices>\n";
+			}
 		}
 		$arr.="</s:signatures>\n";
 		
